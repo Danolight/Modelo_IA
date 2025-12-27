@@ -32,7 +32,7 @@ try:
     TENSORFLOW_AVAILABLE = True
 except ImportError:
     TENSORFLOW_AVAILABLE = False
-    print("⚠️  TensorFlow no instalado. Instala con: pip install tensorflow")
+    print("TensorFlow no instalado. Instala con: pip install tensorflow")
 
 # ============================================================================
 # CONFIGURACIÓN GLOBAL
@@ -118,17 +118,17 @@ class PreparadorDatos:
     def cargar_datos(self):
         """Carga los datos desde el CSV"""
         print("="*70)
-        print("📂 CARGANDO DATOS METEOROLÓGICOS")
+        print("CARGANDO DATOS METEOROLOGICOS")
         print("="*70)
         
         self.df_original = pd.read_csv(self.ruta_datos)
-        print(f"✅ Datos cargados: {self.df_original.shape[0]:,} registros")
-        print(f"📊 Columnas: {list(self.df_original.columns)}")
+        print(f"Datos cargados: {self.df_original.shape[0]:,} registros")
+        print(f"Columnas: {list(self.df_original.columns)}")
         
         # Mostrar estaciones disponibles
         if 'NAME' in self.df_original.columns:
             estaciones = self.df_original['NAME'].unique()
-            print(f"\n🌍 Estaciones disponibles ({len(estaciones)}):")
+            print(f"\nEstaciones disponibles ({len(estaciones)}):")
             for i, est in enumerate(estaciones[:10], 1):
                 count = len(self.df_original[self.df_original['NAME'] == est])
                 print(f"  {i}. {est}: {count:,} registros")
@@ -139,23 +139,23 @@ class PreparadorDatos:
     
     def filtrar_estacion(self):
         """Filtra datos por estación meteorológica específica"""
-        print(f"\n🎯 Filtrando datos para estación: {self.estacion}")
+        print(f"\nFiltrando datos para estacion: {self.estacion}")
         
         if 'NAME' not in self.df_original.columns:
-            print("⚠️  Columna 'NAME' no encontrada. Usando todos los datos.")
+            print("Columna 'NAME' no encontrada. Usando todos los datos.")
             df_estacion = self.df_original.copy()
         else:
             df_estacion = self.df_original[self.df_original['NAME'] == self.estacion].copy()
             
             if len(df_estacion) == 0:
-                print(f"⚠️  No se encontraron datos para '{self.estacion}'")
-                print("📍 Usando la estación con más datos...")
+                print(f"No se encontraron datos para '{self.estacion}'")
+                print("Usando la estacion con mas datos...")
                 estacion_max = self.df_original['NAME'].value_counts().idxmax()
                 df_estacion = self.df_original[self.df_original['NAME'] == estacion_max].copy()
                 self.estacion = estacion_max
-                print(f"✅ Usando: {self.estacion}")
+                print(f"Usando: {self.estacion}")
         
-        print(f"✅ Registros filtrados: {len(df_estacion):,}")
+        print(f"Registros filtrados: {len(df_estacion):,}")
         return df_estacion
     
     def limpiar_datos(self, df):
@@ -168,7 +168,7 @@ class PreparadorDatos:
         Returns:
             DataFrame limpio
         """
-        print("\n🧹 LIMPIANDO DATOS")
+        print("\nLIMPIANDO DATOS")
         print("="*70)
         
         df_clean = df.copy()
@@ -177,7 +177,7 @@ class PreparadorDatos:
         if 'DATE' in df_clean.columns:
             df_clean['DATE'] = pd.to_datetime(df_clean['DATE'])
             df_clean = df_clean.sort_values('DATE').reset_index(drop=True)
-            print(f"📅 Período: {df_clean['DATE'].min()} a {df_clean['DATE'].max()}")
+            print(f"Periodo: {df_clean['DATE'].min()} a {df_clean['DATE'].max()}")
         
         # Reemplazar valores centinela por NaN
         valores_centinela = [999.9, 9999.9, 99.99, -9999]
@@ -186,7 +186,7 @@ class PreparadorDatos:
             df_clean[col] = df_clean[col].replace(valores_centinela, np.nan)
         
         # Analizar valores faltantes
-        print("\n📉 Análisis de valores faltantes:")
+        print("\nAnalisis de valores faltantes:")
         missing_pct = (df_clean.isnull().sum() / len(df_clean) * 100).sort_values(ascending=False)
         
         for col, pct in missing_pct.items():
@@ -196,7 +196,7 @@ class PreparadorDatos:
         # Eliminar columnas con >70% de datos faltantes
         columnas_eliminar = missing_pct[missing_pct > 70].index.tolist()
         if columnas_eliminar:
-            print(f"\n🗑️  Eliminando columnas con >70% faltantes: {columnas_eliminar}")
+            print(f"\nEliminando columnas con >70% faltantes: {columnas_eliminar}")
             df_clean = df_clean.drop(columns=columnas_eliminar)
         
         self.df_limpio = df_clean
@@ -212,7 +212,7 @@ class PreparadorDatos:
         Returns:
             DataFrame con variables seleccionadas
         """
-        print("\n🎯 SELECCIONANDO VARIABLES CORE")
+        print("\nSELECCIONANDO VARIABLES CORE")
         print("="*70)
         
         # Verificar qué variables están disponibles
@@ -220,9 +220,9 @@ class PreparadorDatos:
         vars_faltantes = [v for v in VARIABLES_CORE if v not in df.columns]
         
         if vars_faltantes:
-            print(f"⚠️  Variables no disponibles: {vars_faltantes}")
+            print(f"Variables no disponibles: {vars_faltantes}")
         
-        print(f"✅ Variables seleccionadas: {vars_disponibles}")
+        print(f"Variables seleccionadas: {vars_disponibles}")
         self.variables_seleccionadas = vars_disponibles
         
         # Crear DataFrame con DATE + variables
@@ -240,7 +240,7 @@ class PreparadorDatos:
         Returns:
             DataFrame con features adicionales
         """
-        print("\n🔧 CREANDO FEATURES TEMPORALES")
+        print("\nCREANDO FEATURES TEMPORALES")
         print("="*70)
         
         df_feat = df.copy()
@@ -263,7 +263,7 @@ class PreparadorDatos:
             2 if x in [6, 7, 8] else   # Verano
             3)  # Otoño
         
-        print(f"✅ Features temporales creadas: day_sin, day_cos, month_sin, month_cos, season")
+        print(f"Features temporales creadas: day_sin, day_cos, month_sin, month_cos, season")
         
         return df_feat
     
@@ -277,7 +277,7 @@ class PreparadorDatos:
         Returns:
             DataFrame sin valores faltantes
         """
-        print("\n🔄 IMPUTANDO VALORES FALTANTES")
+        print("\nIMPUTANDO VALORES FALTANTES")
         print("="*70)
         
         # Separar DATE y columnas numéricas
@@ -288,7 +288,7 @@ class PreparadorDatos:
         nan_antes = df[numeric_cols].isnull().sum().sum()
         
         if nan_antes > 0:
-            print(f"📊 Valores faltantes: {nan_antes}")
+            print(f"Valores faltantes: {nan_antes}")
             
             # Imputar con KNN
             df_imputed = df.copy()
@@ -296,13 +296,13 @@ class PreparadorDatos:
             
             # Verificar
             nan_despues = df_imputed[numeric_cols].isnull().sum().sum()
-            print(f"✅ Valores imputados: {nan_antes - nan_despues}")
+            print(f"Valores imputados: {nan_antes - nan_despues}")
             
             if nan_despues > 0:
-                print(f"⚠️  Quedan {nan_despues} NaN. Rellenando con forward fill...")
+                print(f"Quedan {nan_despues} NaN. Rellenando con forward fill...")
                 df_imputed = df_imputed.fillna(method='ffill').fillna(method='bfill')
         else:
-            print("✅ No hay valores faltantes")
+            print("No hay valores faltantes")
             df_imputed = df.copy()
         
         return df_imputed
@@ -317,7 +317,7 @@ class PreparadorDatos:
         Returns:
             DataFrame normalizado
         """
-        print("\n📏 NORMALIZANDO DATOS")
+        print("\nNORMALIZANDO DATOS")
         print("="*70)
         
         # Separar DATE y variables a normalizar
@@ -331,8 +331,8 @@ class PreparadorDatos:
         df_norm = df.copy()
         df_norm[cols_normalizar] = self.scaler.fit_transform(df[cols_normalizar])
         
-        print(f"✅ Variables normalizadas: {cols_normalizar}")
-        print(f"📊 Variables sin normalizar (features): {cols_no_normalizar}")
+        print(f"Variables normalizadas: {cols_normalizar}")
+        print(f"Variables sin normalizar (features): {cols_no_normalizar}")
         
         self.df_procesado = df_norm
         return df_norm
@@ -350,7 +350,7 @@ class PreparadorDatos:
         Returns:
             X, y_dict, fechas
         """
-        print("\n🔨 CREANDO SECUENCIAS TEMPORALES")
+        print("\nCREANDO SECUENCIAS TEMPORALES")
         print("="*70)
         print(f"  Ventana: {ventana} días")
         print(f"  Horizontes: {horizontes} días")
@@ -382,7 +382,7 @@ class PreparadorDatos:
         y = {h: np.array(y[h]) for h in horizontes}
         fechas_pred = np.array(fechas_pred)
         
-        print(f"\n✅ Secuencias creadas:")
+        print(f"\nSecuencias creadas:")
         print(f"  X shape: {X.shape} (muestras, ventana, features)")
         for h in horizontes:
             print(f"  y[{h}d] shape: {y[h].shape} (muestras, variables_core)")
@@ -404,7 +404,7 @@ class PreparadorDatos:
         Returns:
             X_train, X_val, X_test, y_train, y_val, y_test, fechas_train, fechas_val, fechas_test
         """
-        print("\n✂️  DIVIDIENDO DATOS (DIVISIÓN TEMPORAL)")
+        print("\nDIVIDIENDO DATOS (DIVISION TEMPORAL)")
         print("="*70)
         
         n_total = len(X)
@@ -425,7 +425,7 @@ class PreparadorDatos:
         fechas_val = fechas[n_train:n_train + n_val]
         fechas_test = fechas[n_train + n_val:]
         
-        print(f"✅ División completada:")
+        print(f"Division completada:")
         print(f"  Train: {n_train:,} ({n_train/n_total*100:.1f}%) - {fechas_train[0]} a {fechas_train[-1]}")
         print(f"  Val:   {n_val:,} ({n_val/n_total*100:.1f}%) - {fechas_val[0]} a {fechas_val[-1]}")
         print(f"  Test:  {n_test:,} ({n_test/n_total*100:.1f}%) - {fechas_test[0]} a {fechas_test[-1]}")
@@ -440,7 +440,7 @@ class PreparadorDatos:
             X_train, X_val, X_test, y_train, y_val, y_test, fechas_train, fechas_val, fechas_test
         """
         print("\n" + "="*70)
-        print("🚀 INICIANDO PIPELINE DE PREPARACIÓN DE DATOS")
+        print("INICIANDO PIPELINE DE PREPARACION DE DATOS")
         print("="*70)
         
         # 1. Cargar
@@ -471,7 +471,7 @@ class PreparadorDatos:
         result = self.dividir_datos_temporal(X, y, fechas)
         
         print("\n" + "="*70)
-        print("✅ PREPARACIÓN DE DATOS COMPLETADA")
+        print("PREPARACION DE DATOS COMPLETADA")
         print("="*70)
         
         return result
@@ -484,7 +484,7 @@ class PreparadorDatos:
             pickle.dump(self.imputer, f)
         with open(f'{ruta}variables_{self.estacion.replace(" ", "_")}.pkl', 'wb') as f:
             pickle.dump(self.variables_seleccionadas, f)
-        print(f"✅ Preprocessors guardados en {ruta}")
+        print(f"Preprocessors guardados en {ruta}")
 
 
 # ============================================================================
@@ -523,12 +523,12 @@ class ModeloPrediccionMeteorologica:
             Modelo compilado
         """
         if not TENSORFLOW_AVAILABLE:
-            print("❌ TensorFlow no disponible")
+            print("TensorFlow no disponible")
             return None
         
-        print(f"\n🏗️  Construyendo modelo para horizonte {horizonte} días...")
+        print(f"\nConstruyendo modelo para horizonte {horizonte} dias...")
         
-        print(f"\n🏗️  Construyendo modelo para horizonte {horizonte} días...")
+        print(f"\nConstruyendo modelo para horizonte {horizonte} dias...")
         
         # Usar API Funcional para permitir arquitectura más compleja (Attention)
         inputs = Input(shape=(self.ventana, self.n_features))
@@ -572,7 +572,7 @@ class ModeloPrediccionMeteorologica:
             metrics=['mae', 'mse']
         )
         
-        print(f"✅ Modelo construido para {horizonte} días (con Attention)")
+        print(f"Modelo construido para {horizonte} dias (con Attention)")
         model.summary()
         
         return model
@@ -590,10 +590,10 @@ class ModeloPrediccionMeteorologica:
             Historial de entrenamiento
         """
         if not TENSORFLOW_AVAILABLE:
-            print("❌ TensorFlow no disponible")
+            print("TensorFlow no disponible")
             return None
         
-        print(f"\n🎯 ENTRENANDO MODELO - Horizonte {horizonte} días")
+        print(f"\nENTRENANDO MODELO - Horizonte {horizonte} dias")
         print("="*70)
         
         # Construir modelo
@@ -635,14 +635,14 @@ class ModeloPrediccionMeteorologica:
         self.modelos[horizonte] = modelo
         self.historiales[horizonte] = historial
         
-        print(f"\n✅ Entrenamiento completado para {horizonte} días")
+        print(f"\nEntrenamiento completado para {horizonte} dias")
         
         return historial
     
     def entrenar_todos_horizontes(self, X_train, y_train, X_val, y_val):
         """Entrena modelos para todos los horizontes"""
         print("\n" + "="*70)
-        print("🚀 ENTRENANDO MODELOS PARA TODOS LOS HORIZONTES")
+        print("ENTRENANDO MODELOS PARA TODOS LOS HORIZONTES")
         print("="*70)
         
         for horizonte in HORIZONTES_PREDICCION:
@@ -650,17 +650,17 @@ class ModeloPrediccionMeteorologica:
                                X_val, y_val[horizonte], horizonte)
         
         print("\n" + "="*70)
-        print("✅ TODOS LOS MODELOS ENTRENADOS")
+        print("TODOS LOS MODELOS ENTRENADOS")
         print("="*70)
     
     def guardar_modelos(self):
         """Guarda todos los modelos"""
-        print("\n💾 Guardando modelos...")
+        print("\nGuardando modelos...")
         for horizonte, modelo in self.modelos.items():
             if modelo is not None:
                 ruta = f'{MODELS_DIR}modelo_{horizonte}d_final.h5'
                 modelo.save(ruta)
-                print(f"✅ Modelo {horizonte}d guardado: {ruta}")
+                print(f"Modelo {horizonte}d guardado: {ruta}")
 
 
 # ============================================================================
@@ -725,7 +725,7 @@ class EvaluadorModelo:
             return
         
         print(f"\n{'='*70}")
-        print(f"📊 MÉTRICAS - Horizonte {horizonte} días")
+        print(f"METRICAS - Horizonte {horizonte} dias")
         print(f"{'='*70}")
         
         metricas = self.metricas[horizonte]
@@ -762,7 +762,7 @@ class EvaluadorModelo:
         plt.savefig(f'{MODELS_DIR}predicciones_{horizonte}d.png', dpi=300, bbox_inches='tight')
         plt.show()
         
-        print(f"✅ Gráfico guardado: {MODELS_DIR}predicciones_{horizonte}d.png")
+        print(f"Grafico guardado: {MODELS_DIR}predicciones_{horizonte}d.png")
     
     def visualizar_historial(self, horizonte):
         """Visualiza curvas de aprendizaje"""
@@ -797,12 +797,99 @@ class EvaluadorModelo:
         plt.savefig(f'{MODELS_DIR}entrenamiento_{horizonte}d.png', dpi=300, bbox_inches='tight')
         plt.show()
         
-        print(f"✅ Gráfico guardado: {MODELS_DIR}entrenamiento_{horizonte}d.png")
+        print(f"Grafico guardado: {MODELS_DIR}entrenamiento_{horizonte}d.png")
     
+    def visualizar_analisis_residuos(self, horizonte):
+        """
+        Visualiza análisis detallado de residuos (errores)
+        """
+        if horizonte not in self.predicciones:
+            return
+            
+        y_true = self.predicciones[horizonte]['true']
+        y_pred = self.predicciones[horizonte]['pred']
+        residuos = y_true - y_pred
+        
+        n_vars = len(self.preparador.variables_seleccionadas)
+        fig, axes = plt.subplots(n_vars, 2, figsize=(16, 4*n_vars))
+        
+        if n_vars == 1:
+            axes = np.array([axes])
+            
+        for i, var in enumerate(self.preparador.variables_seleccionadas):
+            # 1. Scatter Plot: Predicción vs Real
+            ax_scatter = axes[i, 0]
+            ax_scatter.scatter(y_true[:, i], y_pred[:, i], alpha=0.3, color='#2E86AB')
+            
+            # Línea de identidad (perfecta predicción)
+            min_val = min(y_true[:, i].min(), y_pred[:, i].min())
+            max_val = max(y_true[:, i].max(), y_pred[:, i].max())
+            ax_scatter.plot([min_val, max_val], [min_val, max_val], 'r--', lw=2)
+            
+            ax_scatter.set_title(f'{var}: Predicción vs Real', fontweight='bold')
+            ax_scatter.set_xlabel('Valor Real')
+            ax_scatter.set_ylabel('Valor Predicho')
+            ax_scatter.grid(True, alpha=0.3)
+            
+            # 2. Histograma de Residuos
+            ax_hist = axes[i, 1]
+            sns.histplot(residuos[:, i], kde=True, ax=ax_hist, color='#A23B72')
+            ax_hist.axvline(0, color='r', linestyle='--', lw=2)
+            
+            ax_hist.set_title(f'{var}: Distribución de Errores', fontweight='bold')
+            ax_hist.set_xlabel('Error (Real - Predicho)')
+            ax_hist.grid(True, alpha=0.3)
+            
+        plt.tight_layout()
+        plt.savefig(f'{MODELS_DIR}residuos_{horizonte}d.png', dpi=300, bbox_inches='tight')
+        plt.show()
+        print(f"Analisis de residuos guardado: {MODELS_DIR}residuos_{horizonte}d.png")
+
+    def generar_diagnostico_automatico(self, horizonte):
+        """
+        Genera un reporte automático con sugerencias de mejora
+        """
+        if horizonte not in self.metricas:
+            return
+            
+        metricas = self.metricas[horizonte]
+        print(f"\n{'='*70}")
+        print(f"DIAGNOSTICO AUTOMATICO - Horizonte {horizonte} dias")
+        print(f"{'='*70}")
+        
+        for var in self.preparador.variables_seleccionadas:
+            r2 = metricas[var]['R²']
+            mae = metricas[var]['MAE']
+            
+            print(f"\nAnalisis para {var}:")
+            
+            # Evaluación de R2
+            if r2 > 0.85:
+                estado = "EXCELENTE"
+                consejo = "El modelo captura muy bien la varianza."
+            elif r2 > 0.70:
+                estado = "BUENO"
+                consejo = "Rendimiento sólido, pero podría mejorar con más datos."
+            elif r2 > 0.50:
+                estado = "REGULAR"
+                consejo = "Captura patrones básicos. Intentar aumentar la ventana temporal."
+            else:
+                estado = "DEFICIENTE"
+                consejo = "Posible underfitting. Aumentar complejidad del modelo o revisar datos."
+                
+            print(f"  • Rendimiento: {estado} (R² = {r2:.3f})")
+            print(f"  • Precisión: Error promedio de {mae:.2f}")
+            print(f"  • Recomendación: {consejo}")
+            
+        print("\nCONSEJOS GENERALES:")
+        print("  - Si R² es bajo en entrenamiento y validación: UNDERFITTING -> Aumentar capas/neuronas.")
+        print("  - Si R² es alto en entrenamiento pero bajo en validación: OVERFITTING -> Aumentar Dropout/L2.")
+        print("  - Si los residuos no están centrados en 0: SESGO -> Revisar normalización.")
+
     def evaluar_completo(self, X_test, y_test, fechas_test):
         """Evaluación completa"""
         print("\n" + "="*70)
-        print("🔍 EVALUACIÓN DE MODELOS")
+        print("EVALUACION DE MODELOS")
         print("="*70)
         
         for horizonte in HORIZONTES_PREDICCION:
@@ -842,11 +929,11 @@ def fase_1_preparacion_datos():
     FASE 1: Carga, limpieza y preparación de datos
     """
     print("\n" + "="*70)
-    print("🚀 FASE 1: PREPARACIÓN DE DATOS")
+    print("FASE 1: PREPARACION DE DATOS")
     print("="*70)
     
     if not TENSORFLOW_AVAILABLE:
-        print("\n❌ ERROR: TensorFlow no está instalado")
+        print("\nERROR: TensorFlow no esta instalado")
         return None
     
     # Instanciar preparador
@@ -858,7 +945,7 @@ def fase_1_preparacion_datos():
     # Guardar preprocessors
     preparador.guardar_preprocessors()
     
-    print("\n✅ FASE 1 COMPLETADA")
+    print("\nFASE 1 COMPLETADA")
     return preparador, result
 
 def fase_2_entrenamiento(preparador, datos_procesados):
@@ -866,7 +953,7 @@ def fase_2_entrenamiento(preparador, datos_procesados):
     FASE 2: Construcción y entrenamiento de modelos
     """
     print("\n" + "="*70)
-    print("🚀 FASE 2: ENTRENAMIENTO DE MODELOS")
+    print("FASE 2: ENTRENAMIENTO DE MODELOS")
     print("="*70)
     
     X_train, X_val, X_test, y_train, y_val, y_test, _, _, _ = datos_procesados
@@ -883,7 +970,7 @@ def fase_2_entrenamiento(preparador, datos_procesados):
     # Guardar
     modelo.guardar_modelos()
     
-    print("\n✅ FASE 2 COMPLETADA")
+    print("\nFASE 2 COMPLETADA")
     return modelo
 
 def fase_3_evaluacion_test(modelo, preparador, datos_procesados):
@@ -891,7 +978,7 @@ def fase_3_evaluacion_test(modelo, preparador, datos_procesados):
     FASE 3: Generación de predicciones sobre conjunto de test
     """
     print("\n" + "="*70)
-    print("🚀 FASE 3: TESTEO Y PREDICCIONES")
+    print("FASE 3: TESTEO Y PREDICCIONES")
     print("="*70)
     
     _, _, X_test, _, _, y_test, _, _, fechas_test = datos_procesados
@@ -910,7 +997,7 @@ def fase_3_evaluacion_test(modelo, preparador, datos_procesados):
         
         evaluador.predicciones[horizonte] = {'true': y_true, 'pred': y_pred}
         
-    print("\n✅ FASE 3 COMPLETADA")
+    print("\nFASE 3 COMPLETADA")
     return evaluador
 
 def fase_4_metricas_detalladas(evaluador, datos_procesados):
@@ -918,7 +1005,7 @@ def fase_4_metricas_detalladas(evaluador, datos_procesados):
     FASE 4: Cálculo y visualización de métricas
     """
     print("\n" + "="*70)
-    print("🚀 FASE 4: MÉTRICAS DETALLADAS")
+    print("FASE 4: METRICAS DETALLADAS")
     print("="*70)
     
     _, _, _, _, _, y_test, _, _, _ = datos_procesados
@@ -930,20 +1017,20 @@ def fase_4_metricas_detalladas(evaluador, datos_procesados):
         evaluador.calcular_metricas(y_test[horizonte], y_pred_norm, horizonte)
         evaluador.mostrar_metricas(horizonte)
         
-    print("\n✅ FASE 4 COMPLETADA")
+    print("\nFASE 4 COMPLETADA")
 
 def fase_5_visualizacion_grafica(evaluador, datos_procesados):
     """
     FASE 5: Generación de gráficos
     """
     print("\n" + "="*70)
-    print("🚀 FASE 5: VISUALIZACIÓN GRÁFICA")
+    print("FASE 5: VISUALIZACION GRAFICA")
     print("="*70)
     
     _, _, _, _, _, _, _, _, fechas_test = datos_procesados
     
     for horizonte in HORIZONTES_PREDICCION:
-        print(f"\n📊 Generando gráficos para horizonte {horizonte} días...")
+        print(f"\nGenerando graficos para horizonte {horizonte} dias...")
         
         # Recuperar predicciones
         preds = evaluador.predicciones.get(horizonte)
@@ -951,7 +1038,26 @@ def fase_5_visualizacion_grafica(evaluador, datos_procesados):
             evaluador.visualizar_historial(horizonte)
             evaluador.visualizar_predicciones(preds['true'], preds['pred'], fechas_test, horizonte)
             
-    print("\n✅ FASE 5 COMPLETADA")
+    print("\nFASE 5 COMPLETADA")
+
+def fase_6_diagnostico_final(evaluador, datos_procesados):
+    """
+    FASE 6: Diagnóstico avanzado y reporte
+    """
+    print("\n" + "="*70)
+    print("FASE 6: DIAGNOSTICO FINAL Y RECOMENDACIONES")
+    print("="*70)
+    
+    for horizonte in HORIZONTES_PREDICCION:
+        print(f"\nAnalizando horizonte {horizonte} dias...")
+        
+        # 1. Análisis visual de residuos
+        evaluador.visualizar_analisis_residuos(horizonte)
+        
+        # 2. Reporte automático
+        evaluador.generar_diagnostico_automatico(horizonte)
+            
+    print("\nFASE 6 COMPLETADA")
 
 
 # ============================================================================
@@ -963,7 +1069,7 @@ if __name__ == "__main__":
     plt.style.use('seaborn-v0_8-darkgrid')
     sns.set_palette("husl")
     
-    print("\n🌤️  MODELO DE PREDICCIÓN METEOROLÓGICA (Ejecución Completa)")
+    print("\nMODELO DE PREDICCION METEOROLOGICA (Ejecucion Completa)")
     
     # Ejecutar fases secuencialmente
     preparador, datos = fase_1_preparacion_datos()
@@ -972,5 +1078,6 @@ if __name__ == "__main__":
         evaluador = fase_3_evaluacion_test(modelo, preparador, datos)
         fase_4_metricas_detalladas(evaluador, datos)
         fase_5_visualizacion_grafica(evaluador, datos)
+        fase_6_diagnostico_final(evaluador, datos)
     
-    print("\n🎉 EJECUCIÓN FINALIZADA")
+    print("\nEJECUCION FINALIZADA")

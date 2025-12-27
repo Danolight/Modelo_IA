@@ -129,14 +129,14 @@ def py_to_notebook(py_file, notebook_file):
     
     # Celda 2: Título principal
     notebook["cells"].append(crear_celda_markdown(
-        "🌤️ Modelo de Predicción Meteorológica Multi-Horizonte",
+        "Modelo de Prediccion Meteorologica Multi-Horizonte",
         "**Predicción de variables meteorológicas en 1, 2 y 3 días**\n\n"
         "Este notebook contiene un modelo LSTM Bidireccional optimizado para predicción meteorológica.\n\n"
         "**Sincronizado automáticamente desde `modelo_prediccion_meteorologica.py`**"
     ))
     
     # Celda 3: Montar Google Drive
-    notebook["cells"].append(crear_celda_markdown("📦 Paso 1: Montar Google Drive"))
+    notebook["cells"].append(crear_celda_markdown("Paso 1: Montar Google Drive"))
     notebook["cells"].append(crear_celda_codigo(
         "# Montar Google Drive para acceder a los datos\n"
         "from google.colab import drive\n"
@@ -147,15 +147,15 @@ def py_to_notebook(py_file, notebook_file):
         "if os.path.exists(data_path):\n"
         "    print('✅ Datos encontrados')\n"
         "else:\n"
-        "    print('❌ Datos no encontrados. Asegúrate de subir Cuba_datasheet.csv a tu Google Drive')"
+        "    print('Datos no encontrados. Asegurate de subir Cuba_datasheet.csv a tu Google Drive')"
     ))
     
     # Celda 4: Instalar dependencias
-    notebook["cells"].append(crear_celda_markdown("📦 Paso 2: Instalar Dependencias"))
+    notebook["cells"].append(crear_celda_markdown("Paso 2: Instalar Dependencias"))
     notebook["cells"].append(crear_celda_codigo(
         "# Instalar dependencias necesarias\n"
         "!pip install -q scikit-learn tensorflow matplotlib seaborn\n"
-        "print('✅ Dependencias instaladas')"
+        "print('Dependencias instaladas')"
     ))
     
     # Dividir el código en secciones
@@ -200,19 +200,19 @@ def py_to_notebook(py_file, notebook_file):
     # ============================================================================
     
     notebook["cells"].append(crear_celda_markdown(
-        "🚀 Paso 3: Ejecución Modular",
+        "Paso 3: Ejecucion Modular",
         "Ejecuta las siguientes celdas paso a paso para ver el progreso detallado."
     ))
     
     # FASE 1
-    notebook["cells"].append(crear_celda_markdown("### 1️⃣ Fase 1: Preparación de Datos"))
+    notebook["cells"].append(crear_celda_markdown("### 1. Fase 1: Preparacion de Datos"))
     notebook["cells"].append(crear_celda_codigo(
         "# Cargar, limpiar y procesar datos\n"
         "preparador, datos = fase_1_preparacion_datos()"
     ))
     
     # FASE 2
-    notebook["cells"].append(crear_celda_markdown("### 2️⃣ Fase 2: Entrenamiento del Modelo"))
+    notebook["cells"].append(crear_celda_markdown("### 2. Fase 2: Entrenamiento del Modelo"))
     notebook["cells"].append(crear_celda_codigo(
         "# Entrenar modelos para todos los horizontes\n"
         "if preparador:\n"
@@ -220,7 +220,7 @@ def py_to_notebook(py_file, notebook_file):
     ))
     
     # FASE 3
-    notebook["cells"].append(crear_celda_markdown("### 3️⃣ Fase 3: Testeo y Predicciones"))
+    notebook["cells"].append(crear_celda_markdown("### 3. Fase 3: Testeo y Predicciones"))
     notebook["cells"].append(crear_celda_codigo(
         "# Generar predicciones con datos de prueba\n"
         "if modelo:\n"
@@ -228,7 +228,7 @@ def py_to_notebook(py_file, notebook_file):
     ))
     
     # FASE 4
-    notebook["cells"].append(crear_celda_markdown("### 4️⃣ Fase 4: Métricas Detalladas"))
+    notebook["cells"].append(crear_celda_markdown("### 4. Fase 4: Metricas Detalladas"))
     notebook["cells"].append(crear_celda_codigo(
         "# Ver tablas de precisión (MAE, RMSE, R2)\n"
         "if evaluador:\n"
@@ -236,7 +236,7 @@ def py_to_notebook(py_file, notebook_file):
     ))
     
     # FASE 5
-    notebook["cells"].append(crear_celda_markdown("### 5️⃣ Fase 5: Visualización Gráfica"))
+    notebook["cells"].append(crear_celda_markdown("### 5. Fase 5: Visualizacion Grafica"))
     notebook["cells"].append(crear_celda_codigo(
         "# Configurar estilo y mostrar gráficos\n"
         "import matplotlib.pyplot as plt\n"
@@ -247,11 +247,19 @@ def py_to_notebook(py_file, notebook_file):
         "    fase_5_visualizacion_grafica(evaluador, datos)"
     ))
     
+    # FASE 6
+    notebook["cells"].append(crear_celda_markdown("### 6. Fase 6: Diagnostico Automatico"))
+    notebook["cells"].append(crear_celda_codigo(
+        "# Generar reporte de diagnóstico y análisis de residuos\n"
+        "if evaluador:\n"
+        "    fase_6_diagnostico_final(evaluador, datos)"
+    ))
+    
     # Guardar el notebook
     with open(notebook_file, 'w', encoding='utf-8') as f:
         json.dump(notebook, f, indent=2, ensure_ascii=False)
     
-    print(f"✅ Notebook creado: {notebook_file}")
+    print(f"Notebook creado: {notebook_file}")
     print(f"   Desde: {py_file}")
     print(f"   Celdas: {len(notebook['cells'])}")
 
@@ -263,17 +271,17 @@ def main():
     notebook_file = os.path.join(script_dir, 'modelo1_0.ipynb')
     
     if not os.path.exists(py_file):
-        print(f"❌ Error: No se encontró {py_file}")
+        print(f"Error: No se encontro {py_file}")
         return
     
     print("=" * 70)
-    print("🔄 SINCRONIZANDO modelo_prediccion_meteorologica.py → modelo1_0.ipynb")
+    print("SINCRONIZANDO modelo_prediccion_meteorologica.py -> modelo1_0.ipynb")
     print("=" * 70)
     
     py_to_notebook(py_file, notebook_file)
     
     print("\n" + "=" * 70)
-    print("✅ ¡SINCRONIZACIÓN COMPLETA!")
+    print("SINCRONIZACION COMPLETA!")
     print("=" * 70)
     print("\nPróximos pasos:")
     print("1. Sube Cuba_datasheet.csv a tu Google Drive")

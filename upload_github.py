@@ -9,13 +9,13 @@ import subprocess
 
 def run_command(command):
     """Ejecuta un comando de shell y muestra la salida"""
-    print(f"🚀 Ejecutando: {command}")
+    print(f"Ejecutando: {command}")
     try:
         result = subprocess.run(command, shell=True, check=True, text=True, capture_output=True)
         print(result.stdout)
         return True
     except subprocess.CalledProcessError as e:
-        print(f"❌ Error al ejecutar: {command}")
+        print(f"Error al ejecutar: {command}")
         print(e.stderr)
         return False
 
@@ -32,27 +32,27 @@ def main():
     print("="*60)
     
     # 1. Verificar estado
-    print("\n📊 Estado actual:")
+    print("\nEstado actual:")
     run_command("git status")
     
     # 2. Agregar archivos
-    print("\n➕ Agregando archivos...")
+    print("\nAgregando archivos...")
     if not run_command("git add ."):
         return
     
     # 3. Commit
-    print(f"\n📝 Creando commit: '{commit_message}'")
+    print(f"\nCreando commit: '{commit_message}'")
     if not run_command(f'git commit -m "{commit_message}"'):
-        print("⚠️  No hay cambios para commitear")
+        print("No hay cambios para commitear")
     
     # 4. Push
-    print("\n⬆️  Subiendo a GitHub...")
+    print("\nSubiendo a GitHub...")
     if run_command("git push"):
         print("\n" + "="*60)
-        print("✅ ¡CAMBIOS SUBIDOS EXITOSAMENTE!")
+        print("CAMBIOS SUBIDOS EXITOSAMENTE!")
         print("="*60)
     else:
-        print("\n❌ Error al subir cambios. Verifica tu conexión o credenciales.")
+        print("\nError al subir cambios. Verifica tu conexión o credenciales.")
 
 if __name__ == "__main__":
     main()

@@ -544,15 +544,15 @@ class ModeloPrediccionMeteorologica:
         callbacks = [
             EarlyStopping(
                 monitor='val_loss',
-                patience=10,  # Reducido de 20 a 10 para detener antes si no mejora
-                min_delta=1e-4,  # Mínima mejora requerida para considerar que aprende
+                patience=15,  # Aumentado a 15 para dar más margen
+                min_delta=1e-5,  # Reducido a 1e-5 para detectar mejoras sutiles
                 restore_best_weights=True,
                 verbose=1
             ),
             ReduceLROnPlateau(
                 monitor='val_loss',
                 factor=0.5,
-                patience=5,  # Reducido de 8 a 5
+                patience=7,  # Aumentado a 7
                 min_lr=1e-7,
                 verbose=1
             ),

@@ -65,7 +65,7 @@ VARIABLES_CORE = ['TEMP', 'DEWP', 'PRCP', 'WDSP', 'MAX', 'MIN']
 HORIZONTES_PREDICCION = [1, 2, 3]  # 1 día, 2 días, 3 días
 
 # Ventana temporal (días pasados para predecir)
-VENTANA_TEMPORAL = 30  # Usar últimos 30 días
+VENTANA_TEMPORAL = 90  # Aumentado a 90 días para capturar estaciones completas
 
 # Configuración de entrenamiento
 BATCH_SIZE = 32
@@ -828,6 +828,29 @@ class EvaluadorModelo:
         print("  - Si R² es alto en entrenamiento pero bajo en validación: OVERFITTING -> Aumentar Dropout/L2.")
         print("  - Si los residuos no están centrados en 0: SESGO -> Revisar normalización.")
 
+    def generar_resumen_final(self):
+        """Genera una tabla resumen con la precisión de todos los modelos"""
+        print("\n" + "="*70)
+        print("RESUMEN FINAL DE RENDIMIENTO")
+        print("="*70)
+        print(f"{'HORIZONTE':<10} | {'VARIABLE':<10} | {'R²':<10} | {'MAE':<10} | {'PRECISIÓN EST.*':<15}")
+        print("-" * 70)
+        
+        for h in sorted(self.metricas.keys()):
+            for var in self.preparador.variables_seleccionadas:
+                m = self.metricas[h][var]
+                r2 = m['R²']
+                mae = m['MAE']
+                
+                # Estimación de precisión basada en R2 (0-100%)
+                # Si R2 < 0, la precisión es 0. Si R2=1, es 100%.
+                precision = max(0, r2 * 100)
+                
+                print(f"{h} días      | {var:<10} | {r2:>8.3f}   | {mae:>8.3f}   | {precision:>13.1f}%")
+        
+        print("-" * 70)
+        print("* Precisión Estimada basada en R² (0% = Aleatorio/Mal, 100% = Perfecto)")
+
     def evaluar_completo(self, X_test, y_test, fechas_test):
         """Evaluación completa"""
         print("\n" + "="*70)
@@ -998,6 +1021,9 @@ def fase_6_diagnostico_final(evaluador, datos_procesados):
         
         # 2. Reporte automático
         evaluador.generar_diagnostico_automatico(horizonte)
+    
+    # 3. Resumen Final Global
+    evaluador.generar_resumen_final()
             
     print("\nFASE 6 COMPLETADA")
 

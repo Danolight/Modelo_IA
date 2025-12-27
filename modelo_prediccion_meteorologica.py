@@ -267,75 +267,8 @@ class PreparadorDatos:
         
         return df_feat
     
-    def imputar_valores_faltantes(self, df):
-        """
-        Imputa valores faltantes usando KNN (más inteligente que interpolación)
-        
-        Args:
-            df: DataFrame con valores faltantes
-            
-        Returns:
-            DataFrame sin valores faltantes
-        """
-        print("\nIMPUTANDO VALORES FALTANTES")
-        print("="*70)
-        
-        # Separar DATE y columnas numéricas
-        date_col = df['DATE']
-        numeric_cols = df.select_dtypes(include=[np.number]).columns
-        
-        # Contar NaN antes
-        nan_antes = df[numeric_cols].isnull().sum().sum()
-        
-        if nan_antes > 0:
-            print(f"Valores faltantes: {nan_antes}")
-            
-            # Imputar con KNN
-            df_imputed = df.copy()
-            df_imputed[numeric_cols] = self.imputer.fit_transform(df[numeric_cols])
-            
-            # Verificar
-            nan_despues = df_imputed[numeric_cols].isnull().sum().sum()
-            print(f"Valores imputados: {nan_antes - nan_despues}")
-            
-            if nan_despues > 0:
-                print(f"Quedan {nan_despues} NaN. Rellenando con forward fill...")
-                df_imputed = df_imputed.fillna(method='ffill').fillna(method='bfill')
-        else:
-            print("No hay valores faltantes")
-            df_imputed = df.copy()
-        
-        return df_imputed
-    
-    def normalizar_datos(self, df):
-        """
-        Normaliza datos usando RobustScaler (resistente a outliers)
-        
-        Args:
-            df: DataFrame a normalizar
-            
-        Returns:
-            DataFrame normalizado
-        """
-        print("\nNORMALIZANDO DATOS")
-        print("="*70)
-        
-        # Separar DATE y variables a normalizar
-        date_col = df['DATE']
-        
-        # Solo normalizar las variables meteorológicas core
-        cols_normalizar = self.variables_seleccionadas
-        cols_no_normalizar = [c for c in df.columns if c not in cols_normalizar and c != 'DATE']
-        
-        # Normalizar
-        df_norm = df.copy()
-        df_norm[cols_normalizar] = self.scaler.fit_transform(df[cols_normalizar])
-        
-        print(f"Variables normalizadas: {cols_normalizar}")
-        print(f"Variables sin normalizar (features): {cols_no_normalizar}")
-        
-        self.df_procesado = df_norm
-        return df_norm
+    # Métodos antiguos reemplazados por procesar_subset para evitar data leakage
+    # Se mantienen solo como referencia interna si fuera necesario, pero el pipeline principal usa la nueva lógica.
     
     def crear_secuencias_temporales(self, df, ventana=VENTANA_TEMPORAL, 
                                     horizontes=HORIZONTES_PREDICCION):
@@ -390,91 +323,99 @@ class PreparadorDatos:
         
         return X, y, fechas_pred
     
-    def dividir_datos_temporal(self, X, y, fechas, test_size=TEST_SIZE, val_size=VALIDATION_SPLIT):
+    def dividir_datos_crudos(self, df, test_size=TEST_SIZE, val_size=VALIDATION_SPLIT):
         """
-        Divide datos respetando orden temporal (CRÍTICO para series temporales)
-        
-        Args:
-            X: Secuencias de entrada
-            y: Dictionary con salidas
-            fechas: Array de fechas
-            test_size: Proporción de test
-            val_size: Proporción de validación
-            
-        Returns:
-            X_train, X_val, X_test, y_train, y_val, y_test, fechas_train, fechas_val, fechas_test
+        Divide el DataFrame crudo en Train/Val/Test respetando el orden temporal
         """
-        print("\nDIVIDIENDO DATOS (DIVISION TEMPORAL)")
+        print("\nDIVIDIENDO DATOS CRUDOS (PRE-PROCESAMIENTO)")
         print("="*70)
         
-        n_total = len(X)
+        n_total = len(df)
         n_test = int(n_total * test_size)
         n_val = int(n_total * val_size)
         n_train = n_total - n_test - n_val
         
-        # División temporal (no aleatoria!)
-        X_train = X[:n_train]
-        X_val = X[n_train:n_train + n_val]
-        X_test = X[n_train + n_val:]
-        
-        y_train = {h: y[h][:n_train] for h in y.keys()}
-        y_val = {h: y[h][n_train:n_train + n_val] for h in y.keys()}
-        y_test = {h: y[h][n_train + n_val:] for h in y.keys()}
-        
-        fechas_train = fechas[:n_train]
-        fechas_val = fechas[n_train:n_train + n_val]
-        fechas_test = fechas[n_train + n_val:]
+        # División temporal
+        df_train = df.iloc[:n_train].copy()
+        df_val = df.iloc[n_train:n_train + n_val].copy()
+        df_test = df.iloc[n_train + n_val:].copy()
         
         print(f"Division completada:")
-        print(f"  Train: {n_train:,} ({n_train/n_total*100:.1f}%) - {fechas_train[0]} a {fechas_train[-1]}")
-        print(f"  Val:   {n_val:,} ({n_val/n_total*100:.1f}%) - {fechas_val[0]} a {fechas_val[-1]}")
-        print(f"  Test:  {n_test:,} ({n_test/n_total*100:.1f}%) - {fechas_test[0]} a {fechas_test[-1]}")
+        print(f"  Train: {len(df_train):,} registros - {df_train['DATE'].min()} a {df_train['DATE'].max()}")
+        print(f"  Val:   {len(df_val):,} registros - {df_val['DATE'].min()} a {df_val['DATE'].max()}")
+        print(f"  Test:  {len(df_test):,} registros - {df_test['DATE'].min()} a {df_test['DATE'].max()}")
         
-        return X_train, X_val, X_test, y_train, y_val, y_test, fechas_train, fechas_val, fechas_test
-    
+        return df_train, df_val, df_test
+
+    def procesar_subset(self, df, fit=False):
+        """
+        Aplica imputación y normalización a un subset
+        Si fit=True, aprende los parámetros (solo para Train)
+        """
+        df_proc = df.copy()
+        numeric_cols = df_proc.select_dtypes(include=[np.number]).columns
+        
+        # 1. Imputación
+        if fit:
+            self.imputer.fit(df_proc[numeric_cols])
+            
+        df_proc[numeric_cols] = self.imputer.transform(df_proc[numeric_cols])
+        
+        # Rellenar remanentes si falló KNN
+        df_proc = df_proc.fillna(method='ffill').fillna(method='bfill')
+        
+        # 2. Normalización (Solo variables core)
+        cols_normalizar = [c for c in self.variables_seleccionadas if c in df_proc.columns]
+        
+        if fit:
+            self.scaler.fit(df_proc[cols_normalizar])
+            
+        df_proc[cols_normalizar] = self.scaler.transform(df_proc[cols_normalizar])
+        
+        return df_proc
+
     def preparar_pipeline_completo(self):
         """
-        Ejecuta todo el pipeline de preparación
-        
-        Returns:
-            X_train, X_val, X_test, y_train, y_val, y_test, fechas_train, fechas_val, fechas_test
+        Ejecuta todo el pipeline de preparación con estricta separación de datos
         """
         print("\n" + "="*70)
-        print("INICIANDO PIPELINE DE PREPARACION DE DATOS")
+        print("INICIANDO PIPELINE DE PREPARACION DE DATOS (MODO ESTRICTO)")
         print("="*70)
         
-        # 1. Cargar
+        # 1. Cargar y Limpiar Inicial
         self.cargar_datos()
-        
-        # 2. Filtrar por estación
         df_estacion = self.filtrar_estacion()
-        
-        # 3. Limpiar
         df_limpio = self.limpiar_datos(df_estacion)
-        
-        # 4. Seleccionar variables core
         df_vars = self.seleccionar_variables_core(df_limpio)
-        
-        # 5. Crear features temporales
         df_feat = self.crear_features_temporales(df_vars)
         
-        # 6. Imputar valores faltantes
-        df_imputed = self.imputar_valores_faltantes(df_feat)
+        # 2. Dividir ANTES de procesar (Anti-Leakage)
+        df_train, df_val, df_test = self.dividir_datos_crudos(df_feat)
         
-        # 7. Normalizar
-        df_norm = self.normalizar_datos(df_imputed)
+        # 3. Procesar Subsets (Fit solo en Train)
+        print("\nPROCESANDO SUBSETS (FIT ON TRAIN ONLY)")
+        print("="*70)
         
-        # 8. Crear secuencias
-        X, y, fechas = self.crear_secuencias_temporales(df_norm)
+        print("--> Procesando Train (Fit + Transform)...")
+        df_train_proc = self.procesar_subset(df_train, fit=True)
         
-        # 9. Dividir datos
-        result = self.dividir_datos_temporal(X, y, fechas)
+        print("--> Procesando Val (Transform only)...")
+        df_val_proc = self.procesar_subset(df_val, fit=False)
+        
+        print("--> Procesando Test (Transform only)...")
+        df_test_proc = self.procesar_subset(df_test, fit=False)
+        
+        # 4. Crear Secuencias para cada set
+        print("\nGENERANDO SECUENCIAS POR SUBSET")
+        X_train, y_train, fechas_train = self.crear_secuencias_temporales(df_train_proc)
+        X_val, y_val, fechas_val = self.crear_secuencias_temporales(df_val_proc)
+        X_test, y_test, fechas_test = self.crear_secuencias_temporales(df_test_proc)
         
         print("\n" + "="*70)
         print("PREPARACION DE DATOS COMPLETADA")
         print("="*70)
         
-        return result
+        return X_train, X_val, X_test, y_train, y_val, y_test, fechas_train, fechas_val, fechas_test
     
     def guardar_preprocessors(self, ruta=MODELS_DIR):
         """Guarda scaler e imputer para uso posterior"""

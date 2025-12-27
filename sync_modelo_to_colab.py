@@ -165,7 +165,15 @@ def py_to_notebook(py_file, notebook_file):
     seccion_actual = None
     codigo_acumulado = []
     
+    # Agregar secciones al notebook (EXCEPTO la ejecución principal)
+    seccion_actual = None
+    codigo_acumulado = []
+    
     for seccion in secciones:
+        # Ignorar la sección de ejecución principal del script
+        if 'EJECUCIÓN PRINCIPAL' in seccion['titulo']:
+            continue
+            
         if seccion['tipo'] == 'markdown':
             # Si hay código acumulado, agregarlo primero
             if codigo_acumulado:
@@ -187,33 +195,56 @@ def py_to_notebook(py_file, notebook_file):
     if codigo_acumulado:
         notebook["cells"].append(crear_celda_codigo('\n\n'.join(codigo_acumulado)))
     
-    # Celda final: Ejecutar
+    # ============================================================================
+    # CELDAS DE EJECUCIÓN MODULAR (PASO A PASO)
+    # ============================================================================
+    
     notebook["cells"].append(crear_celda_markdown(
-        "🚀 Paso 3: Ejecutar el Modelo",
-        "Ejecuta la siguiente celda para entrenar el modelo completo.\n\n"
-        "**Nota**: El entrenamiento puede tomar 30-60 minutos dependiendo de la GPU disponible."
+        "🚀 Paso 3: Ejecución Modular",
+        "Ejecuta las siguientes celdas paso a paso para ver el progreso detallado."
     ))
     
+    # FASE 1
+    notebook["cells"].append(crear_celda_markdown("### 1️⃣ Fase 1: Preparación de Datos"))
     notebook["cells"].append(crear_celda_codigo(
-        "# Ejecutar el pipeline completo\n"
-        "if __name__ == '__main__':\n"
-        "    import matplotlib.pyplot as plt\n"
-        "    import seaborn as sns\n"
-        "    \n"
-        "    # Configurar visualización\n"
-        "    plt.style.use('seaborn-v0_8-darkgrid')\n"
-        "    sns.set_palette('husl')\n"
-        "    \n"
-        "    # Ejecutar\n"
-        "    preparador, modelo, evaluador = main()\n"
-        "    \n"
-        "    print('\\n' + '='*70)\n"
-        "    print('✅ MODELO ENTRENADO Y EVALUADO')\n"
-        "    print('='*70)\n"
-        "    print('\\nRevisa las gráficas generadas arriba para ver:')\n"
-        "    print('  - Curvas de aprendizaje (train vs validation)')\n"
-        "    print('  - Predicciones vs valores reales')\n"
-        "    print('  - Métricas de evaluación')"
+        "# Cargar, limpiar y procesar datos\n"
+        "preparador, datos = fase_1_preparacion_datos()"
+    ))
+    
+    # FASE 2
+    notebook["cells"].append(crear_celda_markdown("### 2️⃣ Fase 2: Entrenamiento del Modelo"))
+    notebook["cells"].append(crear_celda_codigo(
+        "# Entrenar modelos para todos los horizontes\n"
+        "if preparador:\n"
+        "    modelo = fase_2_entrenamiento(preparador, datos)"
+    ))
+    
+    # FASE 3
+    notebook["cells"].append(crear_celda_markdown("### 3️⃣ Fase 3: Testeo y Predicciones"))
+    notebook["cells"].append(crear_celda_codigo(
+        "# Generar predicciones con datos de prueba\n"
+        "if modelo:\n"
+        "    evaluador = fase_3_evaluacion_test(modelo, preparador, datos)"
+    ))
+    
+    # FASE 4
+    notebook["cells"].append(crear_celda_markdown("### 4️⃣ Fase 4: Métricas Detalladas"))
+    notebook["cells"].append(crear_celda_codigo(
+        "# Ver tablas de precisión (MAE, RMSE, R2)\n"
+        "if evaluador:\n"
+        "    fase_4_metricas_detalladas(evaluador, datos)"
+    ))
+    
+    # FASE 5
+    notebook["cells"].append(crear_celda_markdown("### 5️⃣ Fase 5: Visualización Gráfica"))
+    notebook["cells"].append(crear_celda_codigo(
+        "# Configurar estilo y mostrar gráficos\n"
+        "import matplotlib.pyplot as plt\n"
+        "import seaborn as sns\n"
+        "plt.style.use('seaborn-v0_8-darkgrid')\n"
+        "sns.set_palette('husl')\n\n"
+        "if evaluador:\n"
+        "    fase_5_visualizacion_grafica(evaluador, datos)"
     ))
     
     # Guardar el notebook

@@ -834,56 +834,143 @@ class EvaluadorModelo:
 
 
 # ============================================================================
-# FUNCIÓN PRINCIPAL
+# FASES DE EJECUCIÓN (MODULAR)
 # ============================================================================
 
-def main():
-    """Pipeline completo"""
+def fase_1_preparacion_datos():
+    """
+    FASE 1: Carga, limpieza y preparación de datos
+    """
     print("\n" + "="*70)
-    print("🌤️  MODELO DE PREDICCIÓN METEOROLÓGICA")
-    print("="*70)
-    print(f"📅 Fecha: 2025-12-27")
-    print(f"🎯 Horizontes: {HORIZONTES_PREDICCION} días")
-    print(f"📊 Variables: {VARIABLES_CORE}")
-    print(f"🌍 Estación: {ESTACION_DEFAULT}")
+    print("🚀 FASE 1: PREPARACIÓN DE DATOS")
     print("="*70)
     
     if not TENSORFLOW_AVAILABLE:
         print("\n❌ ERROR: TensorFlow no está instalado")
-        print("Instala con: pip install tensorflow")
-        return None, None, None
+        return None
     
-    # PARTE 1: Preparación de datos
+    # Instanciar preparador
     preparador = PreparadorDatos(DATA_PATH, ESTACION_DEFAULT)
+    
+    # Ejecutar pipeline
     result = preparador.preparar_pipeline_completo()
-    X_train, X_val, X_test, y_train, y_val, y_test, fechas_train, fechas_val, fechas_test = result
     
     # Guardar preprocessors
     preparador.guardar_preprocessors()
     
-    # PARTE 2: Entrenamiento
+    print("\n✅ FASE 1 COMPLETADA")
+    return preparador, result
+
+def fase_2_entrenamiento(preparador, datos_procesados):
+    """
+    FASE 2: Construcción y entrenamiento de modelos
+    """
+    print("\n" + "="*70)
+    print("🚀 FASE 2: ENTRENAMIENTO DE MODELOS")
+    print("="*70)
+    
+    X_train, X_val, X_test, y_train, y_val, y_test, _, _, _ = datos_procesados
+    
     n_features = X_train.shape[2]
     n_variables_pred = len(preparador.variables_seleccionadas)
     
+    # Instanciar modelo
     modelo = ModeloPrediccionMeteorologica(n_features, n_variables_pred)
+    
+    # Entrenar
     modelo.entrenar_todos_horizontes(X_train, y_train, X_val, y_val)
+    
+    # Guardar
     modelo.guardar_modelos()
     
-    # PARTE 3: Evaluación
-    evaluador = EvaluadorModelo(modelo, preparador)
-    evaluador.evaluar_completo(X_test, y_test, fechas_test)
-    
+    print("\n✅ FASE 2 COMPLETADA")
+    return modelo
+
+def fase_3_evaluacion_test(modelo, preparador, datos_procesados):
+    """
+    FASE 3: Generación de predicciones sobre conjunto de test
+    """
     print("\n" + "="*70)
-    print("🎉 PIPELINE COMPLETADO")
+    print("🚀 FASE 3: TESTEO Y PREDICCIONES")
     print("="*70)
     
-    return preparador, modelo, evaluador
+    _, _, X_test, _, _, y_test, _, _, fechas_test = datos_procesados
+    
+    # Instanciar evaluador
+    evaluador = EvaluadorModelo(modelo, preparador)
+    
+    # Realizar predicciones y guardar internamente
+    for horizonte in HORIZONTES_PREDICCION:
+        print(f"  - Generando predicciones para {horizonte} días...")
+        y_pred_norm = modelo.modelos[horizonte].predict(X_test, verbose=0)
+        
+        # Guardar en el evaluador para uso posterior
+        y_true = preparador.scaler.inverse_transform(y_test[horizonte])
+        y_pred = preparador.scaler.inverse_transform(y_pred_norm)
+        
+        evaluador.predicciones[horizonte] = {'true': y_true, 'pred': y_pred}
+        
+    print("\n✅ FASE 3 COMPLETADA")
+    return evaluador
 
+def fase_4_metricas_detalladas(evaluador, datos_procesados):
+    """
+    FASE 4: Cálculo y visualización de métricas
+    """
+    print("\n" + "="*70)
+    print("🚀 FASE 4: MÉTRICAS DETALLADAS")
+    print("="*70)
+    
+    _, _, _, _, _, y_test, _, _, _ = datos_procesados
+    
+    for horizonte in HORIZONTES_PREDICCION:
+        # Recalcular métricas (o usar las guardadas si ya se hizo)
+        # Aquí forzamos el cálculo para mostrarlo
+        y_pred_norm = evaluador.modelo.modelos[horizonte].predict(datos_procesados[2], verbose=0)
+        evaluador.calcular_metricas(y_test[horizonte], y_pred_norm, horizonte)
+        evaluador.mostrar_metricas(horizonte)
+        
+    print("\n✅ FASE 4 COMPLETADA")
+
+def fase_5_visualizacion_grafica(evaluador, datos_procesados):
+    """
+    FASE 5: Generación de gráficos
+    """
+    print("\n" + "="*70)
+    print("🚀 FASE 5: VISUALIZACIÓN GRÁFICA")
+    print("="*70)
+    
+    _, _, _, _, _, _, _, _, fechas_test = datos_procesados
+    
+    for horizonte in HORIZONTES_PREDICCION:
+        print(f"\n📊 Generando gráficos para horizonte {horizonte} días...")
+        
+        # Recuperar predicciones
+        preds = evaluador.predicciones.get(horizonte)
+        if preds:
+            evaluador.visualizar_historial(horizonte)
+            evaluador.visualizar_predicciones(preds['true'], preds['pred'], fechas_test, horizonte)
+            
+    print("\n✅ FASE 5 COMPLETADA")
+
+
+# ============================================================================
+# EJECUCIÓN PRINCIPAL (Script)
+# ============================================================================
 
 if __name__ == "__main__":
     # Configurar visualización
     plt.style.use('seaborn-v0_8-darkgrid')
     sns.set_palette("husl")
     
-    # Ejecutar
-    preparador, modelo, evaluador = main()
+    print("\n🌤️  MODELO DE PREDICCIÓN METEOROLÓGICA (Ejecución Completa)")
+    
+    # Ejecutar fases secuencialmente
+    preparador, datos = fase_1_preparacion_datos()
+    if preparador:
+        modelo = fase_2_entrenamiento(preparador, datos)
+        evaluador = fase_3_evaluacion_test(modelo, preparador, datos)
+        fase_4_metricas_detalladas(evaluador, datos)
+        fase_5_visualizacion_grafica(evaluador, datos)
+    
+    print("\n🎉 EJECUCIÓN FINALIZADA")

@@ -1,0 +1,281 @@
+"""
+Modelo de Análisis Meteorológico de Cuba
+Análisis de datos climáticos de estaciones meteorológicas cubanas
+Período: 2004-2024
+"""
+
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+import scipy as sc
+from pathlib import Path
+
+# ============================================================================
+# CONFIGURACIÓN
+# ============================================================================
+
+# Rutas de archivos
+# Para Colab: usar rutas de Google Drive
+# Para local: usar rutas relativas o absolutas
+USE_COLAB = False  # Cambiar a True cuando ejecutes en Colab
+
+if USE_COLAB:
+    from google.colab import drive
+    drive.mount('/gdrive')
+    DATA_PATH_1 = '/gdrive/MyDrive/Cuba_datasheet.csv'
+    DATA_PATH_2 = '/gdrive/MyDrive/cuba_detailed.csv'  # Ajustar nombre si es diferente
+else:
+    DATA_PATH_1 = 'data/Cuba_datasheet.csv'
+    DATA_PATH_2 = 'data/cuba_detailed.csv'
+
+# ============================================================================
+# CARGA DE DATOS
+# ============================================================================
+
+def cargar_datos():
+    """
+    Carga los datasets de datos meteorológicos
+    
+    Returns:
+        tuple: (data1, data2) - DataFrames con los datos cargados
+    """
+    print("Cargando datos...")
+    
+    # Dataset principal (124,486 registros)
+    data1 = pd.read_csv(DATA_PATH_1)
+    print(f"Dataset 1 cargado: {data1.shape[0]} filas, {data1.shape[1]} columnas")
+    
+    # Dataset detallado (11,857 registros)
+    try:
+        data2 = pd.read_csv(DATA_PATH_2)
+        print(f"Dataset 2 cargado: {data2.shape[0]} filas, {data2.shape[1]} columnas")
+    except FileNotFoundError:
+        print("Dataset 2 no encontrado. Continuando solo con Dataset 1.")
+        data2 = None
+    
+    return data1, data2
+
+
+def explorar_datos(df, nombre="Dataset"):
+    """
+    Muestra información básica del dataset
+    
+    Args:
+        df: DataFrame a explorar
+        nombre: Nombre descriptivo del dataset
+    """
+    print(f"\n{'='*60}")
+    print(f"EXPLORACIÓN: {nombre}")
+    print(f"{'='*60}")
+    
+    print(f"\nDimensiones: {df.shape}")
+    print(f"\nColumnas: {list(df.columns)}")
+    print(f"\nTipos de datos:")
+    print(df.dtypes)
+    print(f"\nPrimeras filas:")
+    print(df.head())
+    print(f"\nEstadísticas descriptivas:")
+    print(df.describe())
+    print(f"\nValores faltantes:")
+    print(df.isnull().sum())
+
+
+# ============================================================================
+# LIMPIEZA DE DATOS
+# ============================================================================
+
+def limpiar_datos(df):
+    """
+    Limpia el dataset reemplazando valores centinela por NaN
+    
+    Los valores 999.9 y 9999.9 son códigos para datos faltantes
+    
+    Args:
+        df: DataFrame a limpiar
+        
+    Returns:
+        DataFrame limpio
+    """
+    df_limpio = df.copy()
+    
+    # Reemplazar valores centinela por NaN
+    valores_centinela = [999.9, 9999.9, 99.99]
+    
+    for col in df_limpio.select_dtypes(include=[np.number]).columns:
+        df_limpio[col] = df_limpio[col].replace(valores_centinela, np.nan)
+    
+    print(f"\nDatos limpiados. Valores centinela reemplazados por NaN.")
+    
+    return df_limpio
+
+
+def convertir_fechas(df, columna_fecha='DATE'):
+    """
+    Convierte la columna de fecha a formato datetime
+    
+    Args:
+        df: DataFrame
+        columna_fecha: Nombre de la columna de fecha
+        
+    Returns:
+        DataFrame con fecha convertida
+    """
+    df = df.copy()
+    df[columna_fecha] = pd.to_datetime(df[columna_fecha])
+    
+    # Extraer componentes de fecha útiles
+    df['year'] = df[columna_fecha].dt.year
+    df['month'] = df[columna_fecha].dt.month
+    df['day'] = df[columna_fecha].dt.day
+    df['day_of_year'] = df[columna_fecha].dt.dayofyear
+    
+    return df
+
+
+# ============================================================================
+# ANÁLISIS Y VISUALIZACIÓN
+# ============================================================================
+
+def analizar_temperatura(df):
+    """
+    Análisis de temperatura a lo largo del tiempo
+    
+    Args:
+        df: DataFrame con datos de temperatura
+    """
+    plt.figure(figsize=(15, 5))
+    
+    # Temperatura promedio por año
+    if 'TEMP' in df.columns:
+        temp_anual = df.groupby('year')['TEMP'].mean()
+        
+        plt.subplot(1, 2, 1)
+        temp_anual.plot(kind='line', marker='o')
+        plt.title('Temperatura Promedio Anual')
+        plt.xlabel('Año')
+        plt.ylabel('Temperatura (°F)')
+        plt.grid(True, alpha=0.3)
+    
+    # Distribución de temperatura
+    if 'TEMP' in df.columns:
+        plt.subplot(1, 2, 2)
+        df['TEMP'].hist(bins=50, edgecolor='black')
+        plt.title('Distribución de Temperatura')
+        plt.xlabel('Temperatura (°F)')
+        plt.ylabel('Frecuencia')
+        plt.grid(True, alpha=0.3)
+    
+    plt.tight_layout()
+    plt.show()
+
+
+def analizar_precipitacion(df):
+    """
+    Análisis de precipitación
+    
+    Args:
+        df: DataFrame con datos de precipitación
+    """
+    plt.figure(figsize=(15, 5))
+    
+    if 'PRCP' in df.columns:
+        # Precipitación mensual promedio
+        precip_mensual = df.groupby('month')['PRCP'].mean()
+        
+        plt.subplot(1, 2, 1)
+        precip_mensual.plot(kind='bar')
+        plt.title('Precipitación Promedio por Mes')
+        plt.xlabel('Mes')
+        plt.ylabel('Precipitación (pulgadas)')
+        plt.xticks(range(12), ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 
+                                'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'], 
+                   rotation=45)
+        plt.grid(True, alpha=0.3)
+        
+        # Días con precipitación por año
+        plt.subplot(1, 2, 2)
+        dias_lluvia = df[df['PRCP'] > 0].groupby('year').size()
+        dias_lluvia.plot(kind='line', marker='o')
+        plt.title('Días con Precipitación por Año')
+        plt.xlabel('Año')
+        plt.ylabel('Número de Días')
+        plt.grid(True, alpha=0.3)
+    
+    plt.tight_layout()
+    plt.show()
+
+
+def analizar_por_estacion(df):
+    """
+    Análisis comparativo entre estaciones meteorológicas
+    
+    Args:
+        df: DataFrame con datos de múltiples estaciones
+    """
+    if 'NAME' in df.columns and 'TEMP' in df.columns:
+        plt.figure(figsize=(12, 6))
+        
+        # Temperatura promedio por estación
+        temp_por_estacion = df.groupby('NAME')['TEMP'].mean().sort_values()
+        
+        temp_por_estacion.plot(kind='barh')
+        plt.title('Temperatura Promedio por Estación Meteorológica')
+        plt.xlabel('Temperatura (°F)')
+        plt.ylabel('Estación')
+        plt.grid(True, alpha=0.3)
+        plt.tight_layout()
+        plt.show()
+
+
+# ============================================================================
+# FUNCIÓN PRINCIPAL
+# ============================================================================
+
+def main():
+    """
+    Función principal que ejecuta el análisis completo
+    """
+    print("="*60)
+    print("ANÁLISIS METEOROLÓGICO DE CUBA")
+    print("="*60)
+    
+    # 1. Cargar datos
+    data1, data2 = cargar_datos()
+    
+    # 2. Explorar datos
+    explorar_datos(data1, "Dataset Principal")
+    if data2 is not None:
+        explorar_datos(data2, "Dataset Detallado")
+    
+    # 3. Limpiar datos
+    data1_limpio = limpiar_datos(data1)
+    data1_limpio = convertir_fechas(data1_limpio)
+    
+    # 4. Análisis y visualizaciones
+    print("\n" + "="*60)
+    print("GENERANDO VISUALIZACIONES")
+    print("="*60)
+    
+    analizar_temperatura(data1_limpio)
+    analizar_precipitacion(data1_limpio)
+    analizar_por_estacion(data1_limpio)
+    
+    print("\n✅ Análisis completado!")
+    
+    return data1_limpio, data2
+
+
+# ============================================================================
+# EJECUCIÓN
+# ============================================================================
+
+if __name__ == "__main__":
+    # Ejecutar análisis
+    df_principal, df_detallado = main()
+    
+    # Los DataFrames quedan disponibles para análisis adicional
+    print(f"\nDataFrames disponibles:")
+    print(f"  - df_principal: {df_principal.shape}")
+    if df_detallado is not None:
+        print(f"  - df_detallado: {df_detallado.shape}")

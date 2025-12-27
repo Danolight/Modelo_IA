@@ -6,15 +6,24 @@
 Abre y modifica `modelo_cuba.py` en VS Code
 
 ### **Paso 2: Sincroniza con un solo comando**
-En PowerShell (desde la carpeta `modelo_ia_repo`):
 
-```powershell
-.\sync.ps1 "descripción de tus cambios"
+**Opción A - Archivo Batch (MÁS FÁCIL):**
+```cmd
+sync.bat "descripción de cambios"
 ```
 
-Ejemplo:
+**Opción B - PowerShell:**
 ```powershell
-.\sync.ps1 "agregué análisis de viento"
+# Primero, asegúrate de estar en el directorio correcto
+cd d:\Games\Escuela\Antigravity\Modelo_IA\modelo_ia_repo
+
+# Luego ejecuta
+.\sync.ps1 "descripción de cambios"
+```
+
+**Ejemplo:**
+```cmd
+sync.bat "agregué análisis de viento"
 ```
 
 **Esto hace automáticamente:**
@@ -24,10 +33,9 @@ Ejemplo:
 
 ### **Paso 3: Ejecuta en Colab**
 
-1. Ve a: https://github.com/Danolight/Modelo_IA
-2. Abre `modelo1_0.ipynb`
-3. Clic en **"Open in Colab"** (botón azul arriba)
-4. Ejecuta las celdas (Shift+Enter)
+1. Ve a: https://github.com/Danolight/Modelo_IA/blob/base/modelo1_0.ipynb
+2. Clic en **"Open in Colab"** (botón azul arriba)
+3. Ejecuta las celdas (Shift+Enter)
 
 **¡Eso es todo!** 🎉
 
@@ -42,7 +50,7 @@ Ejemplo:
          │
          ▼
 ┌─────────────────┐
-│  2. .\sync.ps1  │  ← Un solo comando
+│  2. sync.bat    │  ← Doble clic o desde terminal
 └────────┬────────┘
          │
          ▼
@@ -67,10 +75,11 @@ Ejemplo:
    - Agregas tu función `analizar_viento(df)`
    - Guardas (Ctrl+S)
 
-2. **En PowerShell:**
-   ```powershell
-   .\sync.ps1 "agregué análisis de viento"
+2. **En Terminal o Explorador:**
+   ```cmd
+   sync.bat "agregué análisis de viento"
    ```
+   O simplemente haz **doble clic** en `sync.bat` y escribe el mensaje
 
 3. **En tu navegador:**
    - Vas a https://github.com/Danolight/Modelo_IA/blob/base/modelo1_0.ipynb
@@ -82,19 +91,26 @@ Ejemplo:
 
 ## 💡 Ventajas de este método
 
-✅ **Más simple:** Solo un comando `.\sync.ps1`  
+✅ **Más simple:** Solo un comando `sync.bat`  
 ✅ **Automático:** El .py se convierte a .ipynb solo  
 ✅ **Directo:** Abres el notebook desde GitHub  
 ✅ **Sin configuración:** No necesitas clonar nada en Colab  
+✅ **Funciona siempre:** El .bat cambia al directorio correcto automáticamente
 
 ---
 
 ## 🛠️ Solución de Problemas
 
 ### **Error: "No se reconoce sync.ps1"**
-Asegúrate de estar en la carpeta correcta:
+**Solución:** Usa `sync.bat` en su lugar:
+```cmd
+sync.bat "tu mensaje"
+```
+
+O cambia al directorio correcto primero:
 ```powershell
 cd d:\Games\Escuela\Antigravity\Modelo_IA\modelo_ia_repo
+.\sync.ps1 "tu mensaje"
 ```
 
 ### **Error: "Python no encontrado"**
@@ -102,10 +118,21 @@ Instala Python desde: https://www.python.org/downloads/
 
 ### **Error al hacer push**
 Configura Git:
-```powershell
+```cmd
 git config --global user.name "Tu Nombre"
 git config --global user.email "tu_email@ejemplo.com"
 ```
+
+---
+
+## 🎁 Bonus: Script de Inicio
+
+Si quieres abrir PowerShell en el directorio correcto automáticamente:
+```powershell
+.\inicio.ps1
+```
+
+Esto te mostrará todos los comandos disponibles.
 
 ---
 

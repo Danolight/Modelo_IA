@@ -13,7 +13,7 @@ cd /d "d:\Games\Escuela\Antigravity\Modelo_IA\modelo_ia_repo"
 if "%~1"=="" (
     echo ❌ Error: Debes proporcionar un mensaje
     echo.
-    echo Uso: sync.bat "descripción de cambios"
+    echo Uso: sync.bat "agregue comentario"
     echo Ejemplo: sync.bat "agregué análisis de viento"
     echo.
     pause

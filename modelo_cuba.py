@@ -2,7 +2,7 @@
 Modelo de Análisis Meteorológico de Cuba
 Análisis de datos climáticos de estaciones meteorológicas cubanas
 Período: 2004-2024
-siuuu
+sirope
 """
 
 import numpy as np

@@ -1,0 +1,24 @@
+# Requisitos para el Modelo de Predicción Meteorológica
+# Instalar con: pip install -r requirements.txt
+
+# Core científico
+numpy>=1.24.0
+pandas>=2.0.0
+scipy>=1.10.0
+
+# Machine Learning
+scikit-learn>=1.3.0
+tensorflow>=2.13.0
+# O usar: tensorflow-cpu>=2.13.0 (versión más ligera sin GPU)
+
+# Visualización
+matplotlib>=3.7.0
+seaborn>=0.12.0
+
+# Utilidades
+joblib>=1.3.0  # Para guardar el scaler
+tqdm>=4.65.0   # Barras de progreso (opcional)
+
+# Para Google Colab (opcional, solo si usas Colab)
+# google-colab
+

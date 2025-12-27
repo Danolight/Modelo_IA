@@ -19,14 +19,17 @@ Modelo_IA/
 ## 🚀 Flujo de Trabajo Simplificado
 
 ### **Paso 1: Edita en tu PC**
+
 Abre `modelo_cuba.py` en VS Code y haz tus cambios
 
 ### **Paso 2: Sincroniza con un comando**
+
 ```powershell
 .\sync.ps1 "descripción de tus cambios"
 ```
 
 ### **Paso 3: Ejecuta en Colab**
+
 1. Ve a: https://github.com/Danolight/Modelo_IA/blob/base/modelo1_0.ipynb
 2. Clic en **"Open in Colab"**
 3. Ejecuta las celdas
@@ -50,6 +53,7 @@ Abre `modelo_cuba.py` en VS Code y haz tus cambios
 ### **Configuración Automática:**
 
 El script detecta si está en Colab o local mediante:
+
 ```python
 USE_COLAB = False  # Se cambia automáticamente a True en el notebook
 ```
@@ -59,6 +63,7 @@ USE_COLAB = False  # Se cambia automáticamente a True en el notebook
 ## 📦 Datos
 
 ### **Dataset Principal: Cuba_datasheet.csv**
+
 - **Registros:** 124,486
 - **Período:** 2004-2024
 - **Variables:** TEMP, DEWP, PRCP, SLP, WDSP, GUST, etc.
@@ -70,12 +75,14 @@ USE_COLAB = False  # Se cambia automáticamente a True en el notebook
 ## 🛠️ Comandos Útiles
 
 ### **Sincronización:**
+
 ```powershell
 # Sincronizar cambios
 .\sync.ps1 "mensaje descriptivo"
 ```
 
 ### **Git (si necesitas):**
+
 ```powershell
 # Ver estado
 git status
@@ -94,6 +101,7 @@ git pull origin base
 **Escenario:** Agregar análisis de viento
 
 1. **Editas** `modelo_cuba.py`:
+
    ```python
    def analizar_viento(df):
        """Análisis de velocidad del viento"""
@@ -102,13 +110,13 @@ git pull origin base
        plt.title('Velocidad del Viento Promedio por Año')
        plt.show()
    ```
-
 2. **Sincronizas**:
+
    ```powershell
    .\sync.ps1 "agregué análisis de viento"
    ```
-
 3. **Ejecutas en Colab**:
+
    - Abres: https://github.com/Danolight/Modelo_IA/blob/base/modelo1_0.ipynb
    - Clic en "Open in Colab"
    - Ejecutas las celdas
@@ -119,23 +127,30 @@ git pull origin base
 ## 🐛 Solución de Problemas
 
 ### **Error: "No se reconoce sync.ps1"**
+
 Asegúrate de estar en la carpeta correcta:
+
 ```powershell
 cd d:\Games\Escuela\Antigravity\Modelo_IA\modelo_ia_repo
 ```
 
 ### **Error: "Python no encontrado"**
+
 Instala Python desde: https://www.python.org/downloads/
 
 ### **Error al hacer push**
+
 Configura Git:
+
 ```powershell
 git config --global user.name "Tu Nombre"
 git config --global user.email "tu_email@ejemplo.com"
 ```
 
 ### **Error en Colab: "Archivo no encontrado"**
+
 Verifica que:
+
 1. Montaste Google Drive: `drive.mount('/gdrive')`
 2. El archivo CSV está en `/gdrive/MyDrive/Cuba_datasheet.csv`
 
@@ -151,7 +166,7 @@ seaborn
 scipy
 ```
 
-**En Colab:** Ya están instaladas  
+**En Colab:** Ya están instaladas
 **En local:** `pip install numpy pandas matplotlib seaborn scipy`
 
 ---

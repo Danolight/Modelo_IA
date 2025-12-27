@@ -262,7 +262,7 @@ def main():
     analizar_precipitacion(data1_limpio)
     analizar_por_estacion(data1_limpio)
     
-    print("\n✅ Análisis completado!")
+    print("\nAnálisis completado!")
     
     return data1_limpio, data2
 

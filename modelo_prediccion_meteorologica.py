@@ -427,6 +427,21 @@ class PreparadorDatos:
             pickle.dump(self.variables_seleccionadas, f)
         print(f"Preprocessors guardados en {ruta}")
 
+    def cargar_preprocessors(self, ruta=MODELS_DIR):
+        """Carga scaler e imputer desde archivos"""
+        try:
+            with open(f'{ruta}scaler_{self.estacion.replace(" ", "_")}.pkl', 'rb') as f:
+                self.scaler = pickle.load(f)
+            with open(f'{ruta}imputer_{self.estacion.replace(" ", "_")}.pkl', 'rb') as f:
+                self.imputer = pickle.load(f)
+            with open(f'{ruta}variables_{self.estacion.replace(" ", "_")}.pkl', 'rb') as f:
+                self.variables_seleccionadas = pickle.load(f)
+            print(f"Preprocessors cargados desde {ruta}")
+            return True
+        except FileNotFoundError:
+            print(f"No se encontraron preprocessors en {ruta}")
+            return False
+
 
 # ============================================================================
 # PARTE 2: ARQUITECTURA DEL MODELO LSTM OPTIMIZADO
@@ -603,6 +618,21 @@ class ModeloPrediccionMeteorologica:
                 ruta = f'{MODELS_DIR}modelo_{horizonte}d_final.h5'
                 modelo.save(ruta)
                 print(f"Modelo {horizonte}d guardado: {ruta}")
+
+    def cargar_modelos_existentes(self):
+        """Carga modelos previamente entrenados"""
+        print("\nCargando modelos existentes...")
+        for horizonte in HORIZONTES_PREDICCION:
+            ruta = f'{MODELS_DIR}modelo_{horizonte}d_best.h5'
+            if Path(ruta).exists():
+                try:
+                    # Cargar modelo (custom_objects si fuera necesario)
+                    self.modelos[horizonte] = load_model(ruta, custom_objects={'MultiHeadAttention': MultiHeadAttention})
+                    print(f"Modelo {horizonte}d cargado: {ruta}")
+                except Exception as e:
+                    print(f"Error cargando modelo {horizonte}d: {e}")
+            else:
+                print(f"No se encontró modelo para {horizonte}d en {ruta}")
 
 
 # ============================================================================

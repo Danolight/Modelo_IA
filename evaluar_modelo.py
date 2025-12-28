@@ -21,17 +21,47 @@ def main():
     print("EVALUACION DE MODELOS PRE-ENTRENADOS")
     print("="*70)
 
+    # Configuración de rutas para Colab/Local
+    # Intentamos detectar si estamos en Colab o si existe la ruta de Drive
+    global DATA_PATH, MODELS_DIR
+    
+    if os.path.exists('/gdrive/MyDrive/Cuba_datasheet.csv'):
+        print("Detectado entorno Colab con Google Drive montado.")
+        DATA_PATH = '/gdrive/MyDrive/Cuba_datasheet.csv'
+        MODELS_DIR = '/gdrive/MyDrive/modelos_meteorologicos/'
+    elif os.path.exists('Cuba_datasheet.csv'):
+        DATA_PATH = 'Cuba_datasheet.csv'
+        MODELS_DIR = 'models/'
+        
+    print(f"Usando datos en: {DATA_PATH}")
+    print(f"Buscando modelos en: {MODELS_DIR}")
+
     # 1. Preparar Datos (Cargar CSV y Preprocessors)
     preparador = PreparadorDatos(DATA_PATH)
     
     # Cargar datos crudos
-    preparador.cargar_datos()
+    try:
+        preparador.cargar_datos()
+    except FileNotFoundError:
+        print(f"\nERROR CRÍTICO: No se encuentra el archivo de datos: {DATA_PATH}")
+        print("Por favor, sube 'Cuba_datasheet.csv' a tu Google Drive o directorio local.")
+        return
+
     preparador.filtrar_estacion()
     
     # Intentar cargar preprocessors guardados
     if not preparador.cargar_preprocessors(MODELS_DIR):
-        print("ERROR: No se encontraron preprocessors (scaler/imputer).")
-        print("Debes haber entrenado el modelo al menos una vez para generarlos.")
+        print("\n" + "!"*70)
+        print("ERROR CRÍTICO: Faltan archivos de preprocesamiento (.pkl)")
+        print("!"*70)
+        print(f"El script buscó en: {MODELS_DIR}")
+        print("Necesitas los siguientes archivos (generados durante el entrenamiento):")
+        print(f"  - scaler_{preparador.estacion.replace(' ', '_')}.pkl")
+        print(f"  - imputer_{preparador.estacion.replace(' ', '_')}.pkl")
+        print(f"  - variables_{preparador.estacion.replace(' ', '_')}.pkl")
+        print("\nSOLUCIÓN:")
+        print("1. Si entrenaste en otra sesión, descarga esos archivos y súbelos a la carpeta 'modelos_meteorologicos' en tu Drive.")
+        print("2. Si es la primera vez, DEBES ejecutar el entrenamiento completo primero (modelo1_0.ipynb).")
         return
 
     # Ejecutar pipeline de preparación (usando los preprocessors cargados)
@@ -58,17 +88,27 @@ def main():
     n_vars_pred = len(preparador.variables_seleccionadas)
     
     modelo_wrapper = ModeloPrediccionMeteorologica(n_features, n_vars_pred)
+    
+    # Forzar la ruta de modelos correcta en la instancia
+    # (Monkey patching temporal porque la clase usa la global MODELS_DIR por defecto)
+    import modelo_prediccion_meteorologica
+    modelo_prediccion_meteorologica.MODELS_DIR = MODELS_DIR
+    
     modelo_wrapper.cargar_modelos_existentes()
     
     if not modelo_wrapper.modelos:
-        print("ERROR: No se cargó ningún modelo.")
+        print("\n" + "!"*70)
+        print("ERROR: No se cargó ningún modelo (.h5)")
+        print("!"*70)
+        print(f"Buscando en: {MODELS_DIR}")
+        print("Asegúrate de tener archivos como 'modelo_1d_best.h5' en esa carpeta.")
         return
 
     # 3. Evaluación
     evaluador = EvaluadorModelo(modelo_wrapper, preparador)
     
     print("\n" + "="*70)
-    print("INICIANDO EVALUACION")
+    print("INICIANDO EVALUACION COMPLETA")
     print("="*70)
     
     for horizonte in HORIZONTES_PREDICCION:
@@ -90,13 +130,19 @@ def main():
         evaluador.calcular_metricas(y_test[horizonte], y_pred_norm, horizonte)
         evaluador.mostrar_metricas(horizonte)
         
-        # Visualizar
+        # Visualizar Predicciones (Series temporales)
         y_true_desnorm = evaluador.predicciones[horizonte]['true']
         y_pred_desnorm = evaluador.predicciones[horizonte]['pred']
         evaluador.visualizar_predicciones(y_true_desnorm, y_pred_desnorm, fechas_test, horizonte)
         
-        # Diagnóstico
+        # Visualizar Historial (si existe el archivo history, aunque aquí cargamos pre-entrenado
+        # así que no tenemos el objeto history en memoria, pero podríamos cargar el png si existe)
+        # Nota: visualizar_historial requiere self.modelo.historiales que está vacío al cargar .h5
+        
+        # Diagnóstico de Residuos
         evaluador.visualizar_analisis_residuos(horizonte)
+        
+        # Reporte Automático
         evaluador.generar_diagnostico_automatico(horizonte)
 
     # Resumen Final

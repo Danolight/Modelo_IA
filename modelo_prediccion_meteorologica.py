@@ -79,7 +79,7 @@ DROPOUT_RATE = 0.35
 L2_REG = 0.001
 
 # Estación meteorológica por defecto (se puede cambiar)
-ESTACION_DEFAULT = 'JARDINES DEL REY, CU'
+ESTACION_DEFAULT = 'JOSE MARTI INTERNATIONAL, CU'
 
 # Random seed para reproducibilidad
 RANDOM_SEED = 42

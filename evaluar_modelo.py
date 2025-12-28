@@ -13,13 +13,15 @@ from modelo_prediccion_meteorologica import (
     MODELS_DIR,
     HORIZONTES_PREDICCION,
     VENTANA_TEMPORAL,
-    VARIABLES_CORE
+    VARIABLES_CORE,
+    ESTACION_DEFAULT
 )
 
 def main():
     print("="*70)
     print("EVALUACION DE MODELOS PRE-ENTRENADOS")
     print("="*70)
+    print(f"Estación objetivo: {ESTACION_DEFAULT}")
 
     # Configuración de rutas para Colab/Local
     # Intentamos detectar si estamos en Colab o si existe la ruta de Drive
@@ -37,7 +39,7 @@ def main():
     print(f"Buscando modelos en: {MODELS_DIR}")
 
     # 1. Preparar Datos (Cargar CSV y Preprocessors)
-    preparador = PreparadorDatos(DATA_PATH)
+    preparador = PreparadorDatos(DATA_PATH, estacion=ESTACION_DEFAULT)
     
     # Cargar datos crudos
     try:

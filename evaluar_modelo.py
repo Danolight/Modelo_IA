@@ -24,14 +24,28 @@ def main():
     print(f"Estación objetivo: {ESTACION_DEFAULT}")
 
     # Configuración de rutas para Colab/Local
-    # Intentamos detectar si estamos en Colab o si existe la ruta de Drive
     global DATA_PATH, MODELS_DIR
     
-    if os.path.exists('/gdrive/MyDrive/Cuba_datasheet.csv'):
-        print("Detectado entorno Colab con Google Drive montado.")
+    # Detección robusta de Colab
+    try:
+        import google.colab
+        IN_COLAB = True
+    except ImportError:
+        IN_COLAB = False
+        
+    if IN_COLAB:
+        print("Detectado entorno Colab.")
+        # Montar Drive si no está montado
+        if not os.path.exists('/gdrive'):
+            from google.colab import drive
+            drive.mount('/gdrive')
+            
+        # Rutas DIRECTAS a Drive como solicitó el usuario
         DATA_PATH = '/gdrive/MyDrive/Cuba_datasheet.csv'
         MODELS_DIR = '/gdrive/MyDrive/modelos_meteorologicos/'
+        
     elif os.path.exists('Cuba_datasheet.csv'):
+        # Entorno Local
         DATA_PATH = 'Cuba_datasheet.csv'
         MODELS_DIR = 'models/'
         

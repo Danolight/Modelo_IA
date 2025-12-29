@@ -13,11 +13,16 @@ import os
 
 # Clonar repositorio si no existe
 if not os.path.exists('modelo_ia_repo'):
-    !git clone https://github.com/tu_usuario/modelo_ia_repo.git
+    !git clone https://github.com/Danolight/Modelo_IA.git
     %cd modelo_ia_repo
 else:
     %cd modelo_ia_repo
     !git pull
+
+# Montar Google Drive
+from google.colab import drive
+if not os.path.exists('/gdrive'):
+    drive.mount('/gdrive')
 
 # Instalar dependencias
 !pip install -r requirements.txt

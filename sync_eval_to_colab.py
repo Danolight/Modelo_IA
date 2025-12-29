@@ -35,6 +35,15 @@ if not os.path.exists('/gdrive'):
     
     # Celda para ejecutar
     run_code = """# @title Ejecutar Evaluación
+import importlib
+import sys
+
+# Forzar recarga del módulo para asegurar que se usa la última versión tras un git pull
+if 'modelo_prediccion_meteorologica' in sys.modules:
+    import modelo_prediccion_meteorologica
+    importlib.reload(modelo_prediccion_meteorologica)
+    print("Módulo modelo_prediccion_meteorologica recargado exitosamente.")
+
 if __name__ == "__main__":
     main()
 """

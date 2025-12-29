@@ -620,17 +620,30 @@ class ModeloPrediccionMeteorologica:
                 print(f"Modelo {horizonte}d guardado: {ruta}")
 
     def cargar_modelos_existentes(self):
-        """Carga modelos previamente entrenados"""
+        """Carga modelos previamente entrenados (usando pesos para mayor robustez)"""
         print("\nCargando modelos existentes...")
         for horizonte in HORIZONTES_PREDICCION:
             ruta = f'{MODELS_DIR}modelo_{horizonte}d_best.h5'
             if Path(ruta).exists():
                 try:
-                    # Cargar modelo (custom_objects si fuera necesario)
-                    self.modelos[horizonte] = load_model(ruta, custom_objects={'MultiHeadAttention': MultiHeadAttention})
-                    print(f"Modelo {horizonte}d cargado: {ruta}")
+                    # 1. Construir arquitectura limpia
+                    print(f"Construyendo arquitectura para {horizonte}d...")
+                    modelo = self.construir_modelo(horizonte)
+                    
+                    # 2. Cargar pesos
+                    print(f"Cargando pesos desde {ruta}...")
+                    modelo.load_weights(ruta)
+                    
+                    self.modelos[horizonte] = modelo
+                    print(f"Modelo {horizonte}d cargado exitosamente.")
                 except Exception as e:
                     print(f"Error cargando modelo {horizonte}d: {e}")
+                    # Intentar fallback a load_model por si acaso
+                    try:
+                        print("Intentando fallback a load_model...")
+                        self.modelos[horizonte] = load_model(ruta, custom_objects={'MultiHeadAttention': MultiHeadAttention})
+                    except Exception as e2:
+                        print(f"Fallback falló también: {e2}")
             else:
                 print(f"No se encontró modelo para {horizonte}d en {ruta}")
 
